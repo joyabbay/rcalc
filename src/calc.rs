@@ -10,16 +10,14 @@ pub struct Calc {
     should_exit: bool,
     num_buffer: String,
     num_stack: Stack,
+    top_element_offset: usize,
 }
 impl Calc {
     fn parse_enter_stroke(&mut self) -> anyhow::Result<()> {
         let curr_num = self.num_buffer.parse::<i64>();
-        match curr_num {
-            Ok(num) => {
+        if let Ok(num) =  curr_num {
                 self.num_stack.push(num);
-                terminal::print_newline()?;
-            }
-            _ => (),
+                terminal::print_newline(self)?;
         }
         self.num_buffer.clear();
         Ok(())
@@ -29,6 +27,7 @@ impl Calc {
             should_exit: false,
             num_buffer: String::with_capacity(40),
             num_stack: Stack::default(),
+            top_element_offset: 0,
         }
     }
     fn process_key(&mut self, k: KeyEvent) -> anyhow::Result<()> {
@@ -44,65 +43,53 @@ impl Calc {
                 self.parse_enter_stroke()?;
             }
             Backspace => {
-                if let Some(_) = self.num_buffer.pop() {
+                if self.num_buffer.pop().is_some() {
                     terminal::print_backspace()?;
                 }
             }
             Char('+') => {
                 self.parse_enter_stroke()?;
-                match self.num_stack.bipop() {
-                    Some((a, b)) => {
-                        terminal::dual_clear()?;
+                if let Some((a,b)) =  self.num_stack.bipop() {
+                        terminal::dual_clear(self)?;
                         let res = a.saturating_add(b);
                         self.num_stack.push(res);
                         terminal::print_char(res)?;
-                        terminal::print_newline()?;
+                        terminal::print_newline(self)?;
                     }
-                    None => (),
                 }
-            }
             Char('-') => {
                 self.parse_enter_stroke()?;
-                match self.num_stack.bipop() {
-                    Some((a, b)) => {
-                        terminal::dual_clear()?;
+                if let Some((a,b)) =  self.num_stack.bipop() {
+                        terminal::dual_clear(self)?;
                         let res = b.saturating_sub(a);
                         self.num_stack.push(res);
                         terminal::print_char(res)?;
-                        terminal::print_newline()?;
+                        terminal::print_newline(self)?;
                     }
-                    None => (),
-                }
             }
             Char('*') => {
                 self.parse_enter_stroke()?;
-                match self.num_stack.bipop() {
-                    Some((a, b)) => {
-                        terminal::dual_clear()?;
-                        let res = b.saturating_mul(a);
+                if let Some((a,b)) =  self.num_stack.bipop() {
+                        terminal::dual_clear(self)?;
+                        let res = a.saturating_mul(b);
                         self.num_stack.push(res);
                         terminal::print_char(res)?;
-                        terminal::print_newline()?;
+                        terminal::print_newline(self)?;
                     }
-                    None => (),
-                }
-            },
-            
+            }
+
             Char('/') => {
                 self.parse_enter_stroke()?;
-                match self.num_stack.bipop() {
-                    Some((a, b)) => {
-                        terminal::dual_clear()?;
-                        if a!=0{
-                        let res = b.saturating_div(a);
-                        self.num_stack.push(res);
-                        terminal::print_char(res)?;
-                        terminal::print_newline()?;
-                        }
+                if let Some((a,b)) =  self.num_stack.bipop() {
+                        terminal::dual_clear(self)?;
+                        if a != 0 {
+                            let res = b.saturating_div(a);
+                            self.num_stack.push(res);
+                            terminal::print_char(res)?;
+                            terminal::print_newline(self)?;
                     }
-                    None => (),
                 }
-            },
+            }
 
             _ => (),
         }
