@@ -9,13 +9,16 @@ impl Stack {
     pub fn push(&mut self, e: i64) {
         self.buffer.push(e);
     }
-    pub fn bipop(&mut self) -> Option<(i64,i64)>{
-        if self.buffer.len()<2 {
+    pub fn bipop(&mut self) -> Option<(i64, i64)> {
+        if self.buffer.len() < 2 {
             return None;
         }
-        Some((self.buffer.pop()?,self.buffer.pop()?))
+        Some((self.buffer.pop()?, self.buffer.pop()?))
     }
-    pub fn pop(&mut self) -> Option<i64> {
-        self.buffer.pop()
+    // pub fn pop(&mut self) -> Option<i64> {
+    //     self.buffer.pop()
+    // }
+    pub fn get_nth(&self, offset: usize) -> Option<i64> {
+        self.buffer.get(offset).copied()
     }
 }
